@@ -34,7 +34,7 @@ while True:
     predictionVariable = model.predict(TM_DATA)
     print('prediction')
     print(predictionVariable)
-    key = cv.waitKey(2000)
+    key = cv.waitKey(50)
     if key == (ord('q')):
         break
 cv.destroyAllWindows()
