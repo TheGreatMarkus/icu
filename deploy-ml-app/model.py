@@ -92,6 +92,4 @@ def predict_img(img: np.ndarray):
 
             result.append({'label': label, 'confidence': confidence, 'bounds': bounding_boxes[i]})
 
-            print("Found: {} at ({}, {}, {}, {}), confidence: {}".format(label, x, y, w, h, confidence))
-
     return result
