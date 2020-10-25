@@ -1,45 +1,32 @@
 import cv2
 import numpy as np
-import base64
 
-classes = []
-with open('../files/coco.names', 'r') as f:
-    classes = f.read().splitlines()
+"""
+@article{yolov3,
+  title={YOLOv3: An Incremental Improvement},
+  author={Redmon, Joseph and Farhadi, Ali},
+  journal = {arXiv},
+  year={2018}
+}
+
+press esc to terminate the program
+model: YOLOv3-416 weight can be downloaded: https://pjreddie.com/darknet/yolo/
+"""
 
 net = cv2.dnn.readNet('../files/yolov3.weights', '../files/yolov3.cfg')
+classes = []
+with open('../../files/coco.names', 'r') as f:
+    classes = f.read().splitlines()
 
+cap = cv2.VideoCapture(0)
 
-def get_image_original(file_name):
-    img = cv2.imread(file_name)
-    return img
+# frame = cv2.imread('image.jpg')
 
+while True:
+    _, frame = cap.read()
+    height, width, _ = frame.shape
 
-def base64_str_to_img(base64str):
-    img_bytes = base64.b64decode(base64str)
-    im_arr = np.frombuffer(img_bytes, dtype=np.uint8)  # im_arr is one-dim Numpy array
-    img = cv2.imdecode(im_arr, flags=cv2.IMREAD_COLOR)
-    return img
-
-
-def get_image(file_name):
-    with open(file_name, "rb") as f:
-        img_b64 = base64.b64encode(f.read())
-
-    img_bytes = base64.b64decode(img_b64)
-    img_arr = np.frombuffer(img_bytes, dtype=np.uint8)  # im_arr is one-dim Numpy array
-    img = cv2.imdecode(img_arr, flags=cv2.IMREAD_COLOR)
-    return img
-
-
-def predict_base64(img_str: str):
-    img = base64_str_to_img(img_str)
-    return predict_img(img)
-
-
-def predict_img(img: np.ndarray):
-    height, width, _ = img.shape
-
-    blob = cv2.dnn.blobFromImage(img, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
+    blob = cv2.dnn.blobFromImage(frame, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
 
     net.setInput(blob)
 
@@ -81,7 +68,8 @@ def predict_img(img: np.ndarray):
     # keep the most probable boxes because we can have more than 1 box for the same object (?)
     indexes = cv2.dnn.NMSBoxes(bounding_boxes, confidences, 0.5, 0.4)
 
-    result = []
+    font = cv2.FONT_HERSHEY_PLAIN
+    colors = np.random.uniform(0, 255, size=(len(bounding_boxes), 3))
 
     # display bounding box on the image
     if len(indexes) > 0:
@@ -89,7 +77,17 @@ def predict_img(img: np.ndarray):
             x, y, w, h = bounding_boxes[i]
             label = str(classes[class_ids[i]])
             confidence = str(round(confidences[i], 2))
+            color = colors[i]
+            # create rectangle
+            cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+            # font, 2, (255, 255, 255) , 2 => size 2, colour white, thickness 2
+            cv2.putText(frame, label + " " + confidence, (x, y + 20), font, 2, (255, 255, 255), 2)
 
-            result.append({'label': label, 'confidence': confidence, 'bounds': bounding_boxes[i]})
+    cv2.imshow('Image', frame)
+    # press esc to terminate
+    key = cv2.waitKey(1)
+    if key == 27:
+        break
 
-    return result
+cap.release()
+cv2.destroyAllWindows()
