@@ -1,5 +1,5 @@
 from flask import Flask, request
-from model import predict_base64, locked
+from model import predict_base64
 from flask_cors import CORS
 import cv2
 
@@ -9,8 +9,6 @@ CORS(app)
 
 @app.route('/', methods=['POST'])
 def hello_world():
-    if locked:
-        return {"result": []}
     data = request.json
 
     result = predict_base64(data['img'])

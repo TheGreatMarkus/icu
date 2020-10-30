@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import base64
 
-locked = 0
 
 def get_image_original(file_name):
     img = cv2.imread(file_name)
@@ -38,7 +37,7 @@ def predict_img(img: np.ndarray):
     with open('../../files/coco.names', 'r') as f:
         classes = f.read().splitlines()
 
-    net = cv2.dnn.readNet('../../files/yolov3.weights', '../../files/yolov3.cfg')
+    net = cv2.dnn.readNet('../../files/yolov4-tiny.weights', '../../files/yolov4-tiny.cfg')
 
     height, width, _ = img.shape
 
@@ -46,15 +45,10 @@ def predict_img(img: np.ndarray):
 
     net.setInput(blob)
 
-    global locked
-    locked = locked + 1
-    print("START {}".format(locked))
-
     try:
 
         output_layers_names = net.getUnconnectedOutLayersNames()
         layerOutputs = net.forward(output_layers_names)
-
 
         bounding_boxes = []
         confidences = []
@@ -103,9 +97,7 @@ def predict_img(img: np.ndarray):
                 result.append({'label': label, 'confidence': confidence, 'bounds': bounding_boxes[i]})
     except:
         print("error END")
-        locked = locked - 1
         return
     print(result)
     print("END")
-    locked = locked - 1
     return result
